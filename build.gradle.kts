@@ -29,6 +29,11 @@ plugins {
 subprojects {
     version = (System.getenv("GITHUB_REF") ?: System.getProperty("GITHUB_REF"))
         ?.replaceFirst("refs/tags/", "") ?: "unspecified"
+
+    tasks.withType<Test>().configureEach {
+        // MockK's agent appends to the bootstrap classpath, which turns off class data sharing with a warning
+        jvmArgs("-Xshare:off")
+    }
 }
 
 dependencies {

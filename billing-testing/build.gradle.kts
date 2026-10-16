@@ -27,6 +27,8 @@ kotlin {
         namespace = "com.appmattus.billing.testing"
         compileSdk = 37
         minSdk = 23
+
+        withHostTest {}
     }
 
     iosArm64()
@@ -43,6 +45,9 @@ kotlin {
         commonTest.dependencies {
             implementation(kotlin("test"))
             implementation(libs.kotlinx.coroutines.test)
+        }
+        getByName("androidHostTest").dependencies {
+            implementation(libs.mockk)
         }
     }
 }

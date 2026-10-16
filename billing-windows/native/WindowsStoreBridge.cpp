@@ -46,16 +46,19 @@ namespace {
 
 std::mutex mutex;
 billing_bridge_callback callback = nullptr;
-StoreContext storeContext{nullptr};
+// Deliberately never freed. A StoreContext global would be released by its destructor when the DLL unloads at
+// process exit, after the Windows Runtime has shut down, which crashes inside Windows.ApplicationModel.Store.dll.
+// It's kept rather than fetched for each call because purchase() gives it the owner window.
+StoreContext *storeContext = nullptr;
 
 constexpr wchar_t durable[] = L"Durable";
 
 StoreContext context() {
     std::lock_guard lock(mutex);
     if (!storeContext) {
-        storeContext = StoreContext::GetDefault();
+        storeContext = new StoreContext(StoreContext::GetDefault());
     }
-    return storeContext;
+    return *storeContext;
 }
 
 IIterable<hstring> productKinds() {
