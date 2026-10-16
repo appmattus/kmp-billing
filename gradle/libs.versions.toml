@@ -1,0 +1,42 @@
+[versions]
+agp = "9.4.1"
+kotlin = "2.4.21"
+detekt = "1.23.8"
+gradle-versions = "0.66.0"
+gradleMavenPublishPlugin = "0.37.0"
+
+coroutines = "1.11.0"
+kotlinx-serialization = "1.11.0"
+atomicfu = "0.33.0"
+
+google-billing = "9.1.0"
+amazon-appstore-sdk = "3.0.9"
+jna = "5.19.1"
+
+junit = "4.13.2"
+mockk = "1.14.11"
+robolectric = "4.17"
+
+[libraries]
+kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "coroutines" }
+kotlinx-coroutines-test = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-test", version.ref = "coroutines" }
+kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "kotlinx-serialization" }
+kotlinx-atomicfu = { module = "org.jetbrains.kotlinx:atomicfu", version.ref = "atomicfu" }
+
+google-billing = { module = "com.android.billingclient:billing", version.ref = "google-billing" }
+amazon-appstore-sdk = { module = "com.amazon.device:amazon-appstore-sdk", version.ref = "amazon-appstore-sdk" }
+jna = { module = "net.java.dev.jna:jna", version.ref = "jna" }
+
+junit = { module = "junit:junit", version.ref = "junit" }
+mockk = { module = "io.mockk:mockk", version.ref = "mockk" }
+robolectric = { module = "org.robolectric:robolectric", version.ref = "robolectric" }
+
+detekt-formatting = { module = "io.gitlab.arturbosch.detekt:detekt-formatting", version.ref = "detekt" }
+
+[plugins]
+android-kotlin-multiplatform-library = { id = "com.android.kotlin.multiplatform.library", version.ref = "agp" }
+kotlin-multiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
+kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
+detekt = { id = "io.gitlab.arturbosch.detekt", version.ref = "detekt" }
+gradle-versions = { id = "com.github.ben-manes.versions", version.ref = "gradle-versions" }
+gradleMavenPublishPlugin = { id = "com.vanniktech.maven.publish", version.ref = "gradleMavenPublishPlugin" }

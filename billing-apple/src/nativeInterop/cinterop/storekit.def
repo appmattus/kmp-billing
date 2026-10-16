@@ -1,0 +1,5 @@
+package = com.appmattus.billing.apple.storekit
+headers = billing_bridge.h
+staticLibraries = libStoreKitBridge.a
+# The bridge is Swift, so it also needs the Swift runtime, which iOS ships in /usr/lib/swift
+linkerOpts = -L/usr/lib/swift -framework StoreKit

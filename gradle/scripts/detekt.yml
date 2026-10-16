@@ -1,0 +1,43 @@
+build:
+  maxIssues: 0
+
+formatting:
+  MaximumLineLength:
+    active: false
+  # Generated Material Symbols ImageVectors keep their snake_case names
+  Filename:
+    excludes: [ '**/icons/**' ]
+
+style:
+  MaxLineLength:
+    maxLineLength: 145 # increased from 120
+  MagicNumber:
+    active: false
+
+naming:
+  # Compose conventions: PascalCase composables and constants
+  FunctionNaming:
+    ignoreAnnotated: [ 'Composable' ]
+    # Detekt's default test excludes, plus KMP's androidHostTest
+    excludes: [ '**/test/**', '**/androidTest/**', '**/commonTest/**', '**/jvmTest/**', '**/androidUnitTest/**', '**/androidInstrumentedTest/**', '**/androidHostTest/**', '**/jsTest/**', '**/iosTest/**' ]
+  TopLevelPropertyNaming:
+    constantPattern: '[A-Z][A-Za-z0-9]*'
+  MatchingDeclarationName:
+    # Detekt's default platform suffixes, plus the desktop target's, e.g. PurchaseHost.desktop.kt
+    multiplatformTargets: [ 'ios', 'android', 'js', 'jvm', 'native', 'iosArm64', 'iosX64', 'macosX64', 'mingwX64', 'linuxX64', 'desktop' ]
+
+complexity:
+  # Composables take state and callbacks as parameters
+  LongParameterList:
+    ignoreAnnotated: [ 'Composable' ]
+  TooManyFunctions:
+    # Store clients implement every BillingClient function
+    ignoreOverridden: true
+    excludes: [ '**/test/**', '**/androidTest/**', '**/commonTest/**', '**/jvmTest/**', '**/androidUnitTest/**', '**/androidInstrumentedTest/**', '**/androidHostTest/**', '**/jsTest/**', '**/iosTest/**' ]
+
+comments:
+  AbsentOrWrongFileLicense:
+    active: true
+    # Resolved relative to this file. The year can be a single year or a range, such as 2026-2027
+    licenseTemplateFile: 'license.template'
+    licenseTemplateIsRegex: true

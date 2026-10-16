@@ -1,0 +1,102 @@
+name: CI
+
+on:
+  push:
+    branches: [ main ]
+    tags: [ '**' ]
+  pull_request:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  android-jvm:
+    name: Android and JVM
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: 17
+      - uses: gradle/actions/setup-gradle@v6
+      - name: Detekt
+        run: ./gradlew detekt
+      - name: Test
+        run: >
+          ./gradlew
+          :billing-core:jvmTest
+          :billing-testing:jvmTest
+          :billing-native-bridge:jvmTest
+          :billing-google:testAndroidHostTest
+          :billing-amazon:testAndroidHostTest
+          :billing-windows:jvmTest
+      - name: Build Android libraries
+        run: ./gradlew :billing-google:assemble :billing-amazon:assemble
+
+  apple:
+    name: iOS and macOS (StoreKit)
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: 17
+      - uses: gradle/actions/setup-gradle@v6
+      - name: Test
+        run: >
+          ./gradlew
+          :billing-core:iosSimulatorArm64Test
+          :billing-testing:iosSimulatorArm64Test
+          :billing-native-bridge:iosSimulatorArm64Test
+          :billing-apple:allTests
+      - name: Build StoreKit bridge
+        run: ./gradlew :billing-apple:jvmJar :billing-apple:compileKotlinIosArm64
+
+  windows:
+    name: Windows (Windows Store)
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: 17
+      - uses: gradle/actions/setup-gradle@v6
+      - name: Build and test the Windows Store bridge
+        run: ./gradlew :billing-windows:jvmTest :billing-windows:jvmJar
+      - uses: actions/upload-artifact@v7
+        with:
+          name: windows-store-bridge
+          path: billing-windows/build/generated/windowsStore/jvmResources/**/*.dll
+
+  release:
+    name: Release to Maven Central
+    if: startsWith(github.ref, 'refs/tags/')
+    needs: [ android-jvm, apple, windows ]
+    # The StoreKit bridge needs macOS to build; the Windows Store bridges come from the windows job
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: 17
+      - uses: gradle/actions/setup-gradle@v6
+      - uses: actions/download-artifact@v8
+        with:
+          name: windows-store-bridge
+          path: billing-windows/build/generated/windowsStore/jvmResources
+      - name: Check both Windows Store bridges are bundled
+        run: |
+          test -f billing-windows/build/generated/windowsStore/jvmResources/com/appmattus/billing/windows/win32-x86-64/WindowsStoreBridge.dll
+          test -f billing-windows/build/generated/windowsStore/jvmResources/com/appmattus/billing/windows/win32-aarch64/WindowsStoreBridge.dll
+      - name: Prepare tag properties
+        run: |
+          echo "${{secrets.GPG_SIGNING_SECRET_KEY_RING_FILE_BASE64}}" > $HOME/.gradle/sonatype-appmattus-keys.gpg.b64
+          base64 -d -i $HOME/.gradle/sonatype-appmattus-keys.gpg.b64 -o $HOME/.gradle/sonatype-appmattus-keys.gpg
+          echo "${{secrets.PUBLISHING_GRADLE_PROPERTIES}}" > $HOME/.gradle/gradle.properties
+      - name: Upload tag
+        run: ./gradlew publishAndReleaseToMavenCentral -Psigning.secretKeyRingFile=$(echo ~/.gradle/sonatype-appmattus-keys.gpg)
