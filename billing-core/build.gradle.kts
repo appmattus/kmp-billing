@@ -27,6 +27,8 @@ kotlin {
         namespace = "com.appmattus.billing"
         compileSdk = 37
         minSdk = 23
+
+        withHostTest {}
     }
 
     iosArm64()

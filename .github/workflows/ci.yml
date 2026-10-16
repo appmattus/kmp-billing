@@ -27,7 +27,9 @@ jobs:
         run: >
           ./gradlew
           :billing-core:jvmTest
+          :billing-core:testAndroidHostTest
           :billing-testing:jvmTest
+          :billing-testing:testAndroidHostTest
           :billing-native-bridge:jvmTest
           :billing-google:testAndroidHostTest
           :billing-amazon:testAndroidHostTest
@@ -54,6 +56,22 @@ jobs:
           :billing-apple:allTests
       - name: Build StoreKit bridge
         run: ./gradlew :billing-apple:jvmJar :billing-apple:compileKotlinIosArm64
+      - name: Fail on JVM crashes
+        # Gradle passes a test task whose JVM crashes after reporting its results, such as in native code at exit
+        if: always()
+        shell: bash
+        run: |
+          crashes=$(find . -name 'hs_err_pid*.log' -not -path './.gradle/*')
+          if [ -n "$crashes" ]; then
+            for crash in $crashes; do echo "::error file=$crash::JVM crashed"; head -40 "$crash"; done
+            exit 1
+          fi
+      - uses: actions/upload-artifact@v7
+        if: failure()
+        with:
+          name: jvm-crash-apple
+          path: '**/hs_err_pid*.log'
+          if-no-files-found: ignore
 
   windows:
     name: Windows (Windows Store)
@@ -67,6 +85,22 @@ jobs:
       - uses: gradle/actions/setup-gradle@v6
       - name: Build and test the Windows Store bridge
         run: ./gradlew :billing-windows:jvmTest :billing-windows:jvmJar
+      - name: Fail on JVM crashes
+        # Gradle passes a test task whose JVM crashes after reporting its results, such as in native code at exit
+        if: always()
+        shell: bash
+        run: |
+          crashes=$(find . -name 'hs_err_pid*.log' -not -path './.gradle/*')
+          if [ -n "$crashes" ]; then
+            for crash in $crashes; do echo "::error file=$crash::JVM crashed"; head -40 "$crash"; done
+            exit 1
+          fi
+      - uses: actions/upload-artifact@v7
+        if: failure()
+        with:
+          name: jvm-crash-windows
+          path: '**/hs_err_pid*.log'
+          if-no-files-found: ignore
       - uses: actions/upload-artifact@v7
         with:
           name: windows-store-bridge
